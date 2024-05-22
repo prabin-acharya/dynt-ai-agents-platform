@@ -4,9 +4,6 @@ import os
 
 app = Flask(__name__)
 
-os.environ["OPENAI_API_KEY"] = "sk-proj-xO8hTBpanrFomLYOkCZpT3BlbkFJwDVSS3YcIowrbNXSsMft"
-
-
 
 researcher = Agent(
     role='Senior Research Analyst',
