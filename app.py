@@ -1,67 +1,69 @@
-from flask import Flask
-from crewai import Agent, Task, Crew, Process
 import os
+
+os.environ["OPENAI_API_KEY"] = "sk-proj-xO8hTBpanrFomLYOkCZpT3BlbkFJwDVSS3YcIowrbNXSsMft"
+os.environ["OPENAI_MODEL_NAME"] = 'gpt-4o'
+
+from flask import Flask, request,jsonify
+from crewai import Agent, Task, Crew
+
+from typing import List
+from pydantic import BaseModel
+
+class CategoryMapping(BaseModel):
+    categoryId: str
+    transactionId: str
+
+class CategoryMappingList(BaseModel):
+    mappings: List[CategoryMapping]
 
 app = Flask(__name__)
 
-
-researcher = Agent(
-    role='Senior Research Analyst',
-    goal='Uncover cutting-edge developments in AI and data science',
-    backstory="You work at a leading tech think tank. Your expertise lies in identifying emerging trends. You have a knack for dissecting complex data and presenting actionable insights.",
-    verbose=True,
+categorizer = Agent(
+    role='Senior Transaction Categorizer',
+    goal='Categorize transactions with predefined categories',
+    backstory="You work at a big accounting company and trained to understand and categorize financial transactions. You analyze transaction details like description, merchant name, debit/credit and categorize them into predefined categories.",
     allow_delegation=False,
 )
 
-writer = Agent(
-    role='Tech Content Strategist',
-    goal='Craft compelling content on tech advancements',
-    backstory="You are a renowned Content Strategist, known for your insightful and engaging articles. You transform complex concepts into compelling narratives.",
-    verbose=True,
-    allow_delegation=True
+verifier = Agent(
+    role='Senior Transaction Verifier',
+    goal='Verify the categories of transactions',
+    backstory="You work at a big accounting firm and trained to verify the categories of financial transactions. You cross-check the categorized transactions and ensure their accuracy.",
+    allow_delegation=True,
 )
 
-
-# Research task
-research_task = Task(
-  description=(
-    "Identify the next big trend in {topic}."
-    "Focus on identifying pros and cons and the overall narrative."
-    "Your final report should clearly articulate the key points,"
-    "its market opportunities, and potential risks."
-  ),
-  expected_output='A comprehensive 2 paragraphs long report on the latest AI trends.',
-  agent=researcher,
+categorize_task = Task(
+    description="Categorize the given transaction: {transactions} based on its details into one of the predefined list of categories: {categories}",
+    expected_output='JSON object containing the transaction details and its category.',
+    agent=categorizer,
 )
 
-# Writing task with language model configuration
-write_task = Task(
-  description=(
-    "Compose an insightful article on {topic}."
-    "Focus on the latest trends and how it's impacting the industry."
-    "This article should be easy to understand, engaging, and positive."
-  ),
-  expected_output='A 4 paragraph article on {topic} advancements formatted as markdown.',
-  agent=writer,
+verify_task = Task(
+    description="Verify the category of the given transaction: {transactions} based on its details. If the category is incorrect, correct it. The possible categories are {categories}.",
+    output_json=CategoryMappingList,
+    expected_output='A verified JSON object containing the transactionId, and the corrected categoryId',
+    agent=verifier,
+
 )
 
-
-
-@app.route('/run_agents', methods=['GET'])
+@app.route('/categorize', methods=['POST'])
 def run_agents():
     print('Running agents...')
+
+    data = request.get_json(force=True)
+
     crew = Crew(
-            agents=[researcher, writer],
-            tasks=[research_task, write_task],
-            process=Process.sequential,  # Optional: Sequential task execution is default
+            agents=[categorizer, verifier],
+            tasks=[categorize_task, verify_task],
             memory=True,
             cache=True,
-            max_rpm=5,
+            max_rpm=100,
         )
 
-    result = crew.kickoff(inputs={'topic': 'AI in healthcare'})
+    result = crew.kickoff(inputs={"transactions": data['transactions'], 'categories':data['categories']})
     return result, 200
 
 
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(port=7777)
