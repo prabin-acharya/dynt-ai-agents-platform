@@ -1,13 +1,15 @@
 import os
-
-os.environ["OPENAI_API_KEY"] = "sk-proj-xO8hTBpanrFomLYOkCZpT3BlbkFJwDVSS3YcIowrbNXSsMft"
-os.environ["OPENAI_MODEL_NAME"] = 'gpt-4o'
-
-from flask import Flask, request,jsonify
+from dotenv import load_dotenv
+from flask import Flask, request
 from crewai import Agent, Task, Crew
-
 from typing import List
 from pydantic import BaseModel
+
+load_dotenv()
+
+os.environ["OPENAI_API_KEY"] = os.getenv('OPENAI_KEY')
+os.environ["OPENAI_MODEL_NAME"] = 'gpt-4o'
+
 
 class CategoryMapping(BaseModel):
     categoryId: str
@@ -43,7 +45,6 @@ verify_task = Task(
     output_json=CategoryMappingList,
     expected_output='A verified JSON object containing the transactionId, and the corrected categoryId',
     agent=verifier,
-
 )
 
 @app.route('/categorize', methods=['POST'])
