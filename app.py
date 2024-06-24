@@ -1,5 +1,9 @@
 import os
 from dotenv import load_dotenv
+
+import agentops
+agentops.init()
+
 from flask import Flask, request
 from crewai import Agent, Task, Crew
 from typing import List, Optional
