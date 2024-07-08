@@ -187,15 +187,10 @@ yt-dlp==2023.12.30
 zipp==3.18.2
 agentops==0.2.3
 altgraph==0.17.2
-charset==3.3.2
 future==0.18.2
 macholib==1.15.2
-pip==24.1
 psutil==5.9.8
 requests==2.31.0
-setuptools==58.0.4
-six1.15.0
 termcolor==2.4.0
 urllib3==2.2.2
-wheel==0.37.0
 idna==3.7
