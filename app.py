@@ -26,26 +26,20 @@ class CategoryMappingList(BaseModel):
 
 app = Flask(__name__)
 
-def create_categorizer():
-    return Agent(
-        role='Senior Transaction Categorizer',
-        goal='Categorize transactions with predefined categories and subcategories',
-        backstory="You work at a big accounting company and trained to understand and categorize financial transactions. You analyze transaction details like description, merchant name, debit/credit and categorize them into predefined categories and subcategories",
-        allow_delegation=False,
-    )
+categorizer = Agent(
+    role='Senior Transaction Categorizer',
+    goal='Categorize transactions with predefined categories and subcategories',
+    backstory="You work at a big accounting company and trained to understand and categorize financial transactions. You analyze transaction details like description, merchant name, debit/credit and categorize them into predefined categories and subcategories",
+    allow_delegation=False,
+)
 
-def create_verifier():
-    return Agent(
-        role='Senior Transaction Verifier',
-        goal='Verify the categories and subcategories of transactions',
-        backstory="You work at a big accounting firm and trained to verify the categories and subcategories of financial transactions. You cross-check the categorized transactions and ensure their accuracy.",
-        allow_delegation=True,
-    )
+verifier = Agent(
+    role='Senior Transaction Verifier',
+    goal='Verify the categories and subcategories of transactions',
+    backstory="You work at a big accounting firm and trained to verify the categories and subcategories of financial transactions. You cross-check the categorized transactions and ensure their accuracy.",
+    allow_delegation=True,
+)
 
-categorizer = create_categorizer()
-verifier = create_verifier()
-
-@agentops.record_function('categorize_transactions')
 def categorize_task(agent, transactions, categories):
     with agentops.context('transaction-categorizer'):
         task = Task(
@@ -55,7 +49,6 @@ def categorize_task(agent, transactions, categories):
         )
         return task.execute()
 
-@agentops.record_function('verify_transactions')
 def verify_task(agent, transactions, categories):
     with agentops.context('transaction-verifier'):
         task = Task(
