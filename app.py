@@ -15,7 +15,7 @@ agentops.init(os.getenv('AGENTOPS_API_KEY'))
 
 # Set up OpenAI environment variables
 os.environ["OPENAI_API_KEY"] = os.getenv('OPENAI_KEY')
-os.environ["OPENAI_MODEL_NAME"] = 'gpt-4'
+os.environ["OPENAI_MODEL_NAME"] = 'gpt-4o-mini'
 
 class CategoryMapping(BaseModel):
     transactionId: str
@@ -76,19 +76,53 @@ def run_agents():
     result = crew.kickoff()
     return result.model_dump_json(), 200
 
+
+
+
+
+
+
+class InferMerchant(BaseModel):
+    transactionId: str
+    organizationId: str
+    merchant: Optional[str] = None
+
+class InferMerchantList(BaseModel):
+    transactions: List[InferMerchant]
+
+merchant_inferer = Agent(
+    role='Advanced Merchant Detection Specialist',
+    goal='Accurately determine the merchant name from detailed transaction descriptions',
+    backstory="As an AI developed by a leading fintech company, you've been trained on millions of transaction records to identify merchant names with high precision, even from the most ambiguous transaction descriptions.",
+    allow_delegation=False,
+)
+
+def infer_merchant_task(agent, transactions):
+    task = Task(
+        description=f"Analyze the provided list of transaction details: {transactions} and apply your advanced inference algorithms to accurately identify the merchant names. Each transaction is a puzzle, and your role is to solve it with the precision of a detective.",
+        expected_output="A structured list of JSON objects, each containing 'transactionId', 'organizationId', and the inferred 'merchantName' (if found). Accuracy is key, as these inferences power critical financial analytics.",
+        agent=agent,
+        output_json=InferMerchantList,
+    )
+    return task
+
+
+@app.route('/infer_merchant', methods=['POST'])
+def run_merchant_inference():
+    data = request.get_json(force=True)
+    print('Running merchant agent...')
+
+    crew = Crew(
+        agents=[merchant_inferer],
+        tasks=[infer_merchant_task(merchant_inferer, data)],
+        max_rpm=100,
+        process=Process.sequential
+    )
+
+    result = crew.kickoff()
+    return result.model_dump_json(), 200
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=7777)
-    agentops.end_session('Success')
-
-# Suggestions and comments:
-# 1. Add error handling for missing environment variables
-# 2. Implement proper logging instead of print statements
-# 3. Add input validation for the POST request data
-# 4. Consider adding a health check endpoint
-# 5. Implement proper error handling and return appropriate HTTP status codes
-# 6. Add type hints to improve code readability and catch potential type-related errors
-# 7. Consider implementing rate limiting to prevent abuse
-# 8. Add unit tests for the categorize_task and verify_task functions
-# 9. Implement proper exception handling in the run_agents function
-# 10. Consider using a production-ready WSGI server like Gunicorn instead of Flask's development server
 
