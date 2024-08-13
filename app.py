@@ -51,7 +51,7 @@ def categorize_task(agent, transactions, categories):
 
 def verify_task(agent, transactions, categories):
     task = Task(
-        description=f"Verify the category of the given transactions: {transactions} based on their details. If the category and/or subcategory is incorrect, correct it. The possible categories are {categories}. Remember a subcategory can only be assigned if the parent category is assigned added to the transaction. If no category and/or subcategory found relevant, leave it as NONE. If both are NONE for a transaction, don't include it in the output.",
+        description=f"Verify the category of the given transactions: {transactions} based on their details. If the category and/or subcategory is incorrect, correct it. The possible categories are {categories}. Remember a subcategory can only be assigned if the parent category is assigned added to the transaction. If no category and/or subcategory found relevant, leave it. If both couldn't be found for a transaction, don't include it in the output.",
         output_json=CategoryMappingList,
         expected_output='A verified JSON object containing the transactionId, and the corrected categoryId and subCategoryId (if applicable).',
         agent=agent,
