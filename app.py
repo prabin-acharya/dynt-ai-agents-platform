@@ -41,17 +41,17 @@ verifier = Agent(
     allow_delegation=True,
 )
 
-def categorize_task(agent, transactions, categories):
+def categorize_task(agent, transactions, categories, instructions):
     task = Task(
-        description=f"Categorize the given transactions: {transactions} based on their details into one of the predefined list of categories and subcategories: {categories}, remember a subcategory can only be assigned if the parent category is assigned to that transaction.",
+        description=f"Categorize the given transactions: {transactions} based on their details into one of the predefined list of categories and subcategories: {categories}, remember a subcategory can only be assigned if the parent category is assigned to that transaction. Make sure you thoroughly follow the instructions (if any): {instructions} while categorizing the transactions.",
         expected_output='JSON object containing the transaction details and its category and subcategory (if applicable).',
         agent=agent,
     )
     return task
 
-def verify_task(agent, transactions, categories):
+def verify_task(agent, transactions, categories, instructions):
     task = Task(
-        description=f"Verify the category of the given transactions: {transactions} based on their details. If the category and/or subcategory is incorrect, correct it. The possible categories are {categories}. Remember a subcategory can only be assigned if the parent category is assigned added to the transaction. If no category and/or subcategory found relevant, leave it. If both couldn't be found for a transaction, don't include it in the output.",
+        description=f"Verify the category of the given transactions: {transactions} based on their details. If the category and/or subcategory is incorrect, correct it. The possible categories are {categories}. Remember a subcategory can only be assigned if the parent category is assigned added to the transaction. If no category and/or subcategory found relevant, leave it. If both couldn't be found for a transaction, don't include it in the output. Make sure you thoroughly follow the instructions (if any): {instructions} while verifying the transactions.",
         output_json=CategoryMappingList,
         expected_output='A verified JSON object containing the transactionId, and the corrected categoryId and subCategoryId (if applicable).',
         agent=agent,
@@ -66,8 +66,8 @@ def run_agents():
     crew = Crew(
         agents=[categorizer, verifier],
         tasks=[
-            categorize_task(categorizer, data['transactions'], data['categories']),
-            verify_task(verifier, data['transactions'], data['categories'])
+            categorize_task(categorizer, data['transactions'], data['categories'], data['instructions']),
+            verify_task(verifier, data['transactions'], data['categories'], data['instructions'])
         ],
         max_rpm=100,
         process=Process.sequential
@@ -99,7 +99,7 @@ merchant_inferer = Agent(
 
 def infer_merchant_task(agent, transactions):
     task = Task(
-        description=f"Analyze the provided list of transaction details: {transactions} and apply your advanced inference algorithms to accurately identify the merchant names. Each transaction is a puzzle, and your role is to solve it with the precision of a detective.",
+        description=f"Analyze the provided list of transaction details: {transactions} and apply your advanced inference algorithms to accurately identify the merchant names. Each transaction is a puzzle, and your role is to solve it with the precision of a detective. Make sure you follow the given instructions (if any) while inferring the merchant names.",
         expected_output="A structured list of JSON objects, each containing 'transactionId', 'organizationId', and the inferred 'merchantName' (if found). Accuracy is key, as these inferences power critical financial analytics.",
         agent=agent,
         output_json=InferMerchantList,
