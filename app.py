@@ -43,7 +43,7 @@ verifier = Agent(
 
 def categorize_task(agent, transactions, categories, instructions):
     task = Task(
-        description=f"Categorize the given transactions: {transactions} based on their details into one of the predefined list of categories and subcategories: {categories}, remember a subcategory can only be assigned if the parent category is assigned to that transaction. Make sure you thoroughly follow the instructions (if any): {instructions} while categorizing the transactions.",
+        description=f"Categorize the given transactions: {transactions} based on their details into one of the predefined list of categories and subcategories: {categories}, remember a subcategory can only be assigned if the parent category is assigned to that transaction. Make sure you thoroughly follow the instructions: {instructions} while categorizing the transactions.",
         expected_output='JSON object containing the transaction details and its category and subcategory (if applicable).',
         agent=agent,
     )
@@ -96,9 +96,9 @@ merchant_inferer = Agent(
     allow_delegation=False,
 )
 
-def infer_merchant_task(agent, transactions):
+def infer_merchant_task(agent, transactions, instructions):
     task = Task(
-        description=f"Analyze the provided list of transaction details: {transactions} and apply your advanced inference algorithms to accurately identify the merchant names. Each transaction is a puzzle, and your role is to solve it with the precision of a detective. Make sure you follow the given instructions (if any) while inferring the merchant names.",
+        description=f"Analyze the provided list of transaction details: {transactions} and apply your advanced inference algorithms to accurately identify the merchant names. Each transaction is a puzzle, and your role is to solve it with the precision of a detective. Make sure you follow the given instructions: {instructions} while inferring the merchant names.",
         expected_output="A structured list of JSON objects, each containing 'transactionId', and the inferred 'merchantName' (if found) for that transaction. Accuracy is key, as these inferences power critical financial analytics.",
         agent=agent,
         output_json=InferMerchantList,
@@ -113,7 +113,7 @@ def run_merchant_inference():
 
     crew = Crew(
         agents=[merchant_inferer],
-        tasks=[infer_merchant_task(merchant_inferer, data)],
+        tasks=[infer_merchant_task(merchant_inferer, data["transactions"], data["instructions"])],
         max_rpm=100,
         process=Process.sequential
     )
