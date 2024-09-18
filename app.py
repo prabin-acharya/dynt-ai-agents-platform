@@ -84,7 +84,6 @@ def run_agents():
 
 class InferMerchant(BaseModel):
     transactionId: str
-    organizationId: str
     merchant: Optional[str] = None
 
 class InferMerchantList(BaseModel):
@@ -100,7 +99,7 @@ merchant_inferer = Agent(
 def infer_merchant_task(agent, transactions):
     task = Task(
         description=f"Analyze the provided list of transaction details: {transactions} and apply your advanced inference algorithms to accurately identify the merchant names. Each transaction is a puzzle, and your role is to solve it with the precision of a detective. Make sure you follow the given instructions (if any) while inferring the merchant names.",
-        expected_output="A structured list of JSON objects, each containing 'transactionId', 'organizationId', and the inferred 'merchantName' (if found). Accuracy is key, as these inferences power critical financial analytics.",
+        expected_output="A structured list of JSON objects, each containing 'transactionId', and the inferred 'merchantName' (if found) for that transaction. Accuracy is key, as these inferences power critical financial analytics.",
         agent=agent,
         output_json=InferMerchantList,
     )
