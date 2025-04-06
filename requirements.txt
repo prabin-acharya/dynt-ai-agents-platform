@@ -1,6 +1,7 @@
 agentops==0.3.6
 crewai==0.108.0
 Flask==3.1.0
+gunicorn==23.0.0
 langchain==0.3.23
 langchain_core==0.3.51
 langgraph==0.3.25
