@@ -8,10 +8,12 @@ Tools for performing various tasks are defined at `/tools`. Here is a list of cu
 - `get_transaction(transaction_id)`: Get a specific transaction details by its ID.
 - `get_invoices(org_id)`: Get latest invoices for a given organization.
 - `get_categories(org_id)`: Get all defined categories for a given organization.
+- `get_organization_details(org_id)`: Get details of a specific organization.
 
 To add new tools, simply wrap the desired Supabase call in a Python function and add it to the tools list.
 
-**Tools are also available as endpoints:**  
+**Tools are also available as endpoints:**
+
 - [/tools/organization?org_id=](https://dynt-ai-agents-platform-production.up.railway.app/tools/organization?org_id=clm9bbaq00001ol1rs8s7z9p2)
 - `/tools/transaction?tsx_id=`
 - `/tools/transactions?org_id=`
