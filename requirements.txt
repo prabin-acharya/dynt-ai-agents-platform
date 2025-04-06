@@ -1,7 +1,9 @@
 agentops==0.3.6
 crewai==0.108.0
 Flask==3.1.0
+langchain==0.3.23
+langchain_core==0.3.51
+langgraph==0.3.25
 pydantic==2.11.2
 python-dotenv==1.1.0
-Requests==2.32.3
 supabase==2.15.0
