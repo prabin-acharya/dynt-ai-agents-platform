@@ -21,6 +21,16 @@ def organization():
     result = get_organization_details(org_id)
     return jsonify(result)
 
+@bp.route("/transaction", methods=["GET"])
+def transaction():
+    transaction_id = request.args.get("txn_id") 
+
+    if not transaction_id:
+        return jsonify({"error": "Missing org_id parameter"}), 400
+        
+    result = get_transaction(transaction_id)
+    return jsonify(result)
+
 @bp.route("/transactions", methods=["GET"])
 def transactions():
     org_id = request.args.get("org_id") 
@@ -29,16 +39,6 @@ def transactions():
         return jsonify({"error": "Missing org_id parameter"}), 400
         
     result = get_transactions(org_id)
-    return jsonify(result)
-
-@bp.route("/transaction", methods=["GET"])
-def transactions():
-    transaction_id = request.args.get("txn_id") 
-
-    if not transaction_id:
-        return jsonify({"error": "Missing org_id parameter"}), 400
-        
-    result = get_transaction(transaction_id)
     return jsonify(result)
 
 @bp.route("/invoices", methods=["GET"])
