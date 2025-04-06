@@ -2,17 +2,17 @@
 
 ## 🧰 Tools
 
-Tools for performing various tasks are defined at `/tools`. Here is a list of currently available tools:
+Tools for performing various tasks are defined in `/tools`. Here's a list of currently available tools:
 
-- `get_transactions(org_id)`: Get latest transactions for a given organization.
-- `get_transaction(transaction_id)`: Get a specific transaction details by its ID.
-- `get_invoices(org_id)`: Get latest invoices for a given organization.
+- `get_transactions(org_id)`: Get the latest transactions for a given organization.
+- `get_transaction(transaction_id)`: Get details of a specific transaction by its ID.
+- `get_invoices(org_id)`: Get the latest invoices for a given organization.
 - `get_categories(org_id)`: Get all defined categories for a given organization.
 - `get_organization_details(org_id)`: Get details of a specific organization.
 
-To add new tools, simply wrap the desired Supabase call in a Python function and add it to the tools list.
+To add a new tool, wrap the desired Supabase call in a Python function and add it to the tools list.
 
-**Tools are also available as endpoints:**
+**Tools are also exposed as endpoints:**
 
 - [/tools/organization?org_id=](https://dynt-ai-agents-platform-production.up.railway.app/tools/organization?org_id=clm9bbaq00001ol1rs8s7z9p2)
 - `/tools/transaction?tsx_id=`
@@ -21,7 +21,7 @@ To add new tools, simply wrap the desired Supabase call in a Python function and
 
 ## 🤖 Agents
 
-The `/agents` directory contains the code for the agents. The agents are designed to perform specific tasks like categorizing transactions, inferring merchants. (Built with LangChain)
+The `/agents` directory contains the code for the agents. These agents perform tasks like categorizing transactions or inferring merchants. (Built with LangChain)
 
 ## 💬 Chat
 
@@ -48,3 +48,41 @@ Right now, you have to pass the organization id or the necessary parameters in t
 
     ```
 ````
+
+## 📁 Repo Structure
+
+```bash
+.
+├── app.py                         # Entry point for the app
+├── config.py
+├── agents/
+│   ├── __init__.py
+│   ├── base_agent.py
+│   ├── categorize_transactions.py # Agent for categorizing transactions
+├── tools/
+│   ├── __init__.py
+│   ├── invoices.py                # Tool for fetching latest invoices(8)
+│   ├── transactions.py            # Tool for fetching latest transactions, transaction details
+│   ├── organization.py            # Tool for fetching organization details
+│   ├── categories.py              # Tool for fetching defined categories in the organization
+├── routes/
+│   ├── __init__.py
+│   ├── chat.py
+│   ├── tools.py                   # Route to expose tool endpoints
+│   └── agents.py
+├── prompts/
+│   ├── __init__.py
+│   ├── categorize_transaction.py
+│   ├── chat_agent.py
+├── templates/
+│   ├── chat.html
+├── agetn_logs/
+│   ├── __init__.py
+│   ├── logger.py
+│   └── supabase_client.py         # Supabase client helper
+│   └── supabase_logger_mixin.py  # Logging mixin for Supabase
+├── requirements.txt
+├── .env
+├── .gitignore
+└── README.md
+```
