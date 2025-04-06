@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Dynt AI Assistant</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #fdfdfd;
+            color: #333;
+            padding: 2rem;
+            max-width: 700px;
+            margin: auto;
+        }
+
+        h2 {
+            font-weight: 500;
+            color: #444;
+        }
+
+        .chat-box {
+            margin: 2rem 0;
+            min-height: 400px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .message {
+            padding: 0.5rem 1rem;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+            border-radius: 8px;
+            max-width: 80%;
+            white-space: pre-wrap;
+        }
+
+        .human {
+            background: #d1e7dd;
+            align-self: flex-end;
+            margin-left: auto;
+        }
+
+        .ai {
+            background: #e7f0fd;
+            align-self: flex-start;
+            margin-right: auto;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        button {
+            padding: 0.75rem 1.25rem;
+            background-color: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #1565c0;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .thread {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .loading {
+            font-style: italic;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>💬 Dynt AI Assistant</h2>
+    <div class="chat-box thread" id="chatBox"></div>
+
+    <div class="input-area">
+        <input type="text" id="messageInput" placeholder="Ask me anything..."
+            onkeydown="if(event.key==='Enter') sendMessage()" />
+        <button id="sendButton" onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        let history = [];
+        let isWaitingForResponse = false;
+
+        function renderMessages() {
+            const chatBox = document.getElementById("chatBox");
+            chatBox.innerHTML = "";
+
+            history.forEach(msg => {
+                const div = document.createElement("div");
+                div.className = "message " + msg.type;
+
+                if (msg.isLoading) {
+                    div.className += " loading";
+                    div.textContent = "...";
+                } else {
+                    div.textContent = msg.content;
+                }
+
+                chatBox.appendChild(div);
+            });
+
+            // Scroll to bottom
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function setLoading(isLoading) {
+            isWaitingForResponse = isLoading;
+            document.getElementById("sendButton").disabled = isLoading;
+            document.getElementById("messageInput").disabled = isLoading;
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById("messageInput");
+            const userMessage = input.value.trim();
+
+            if (!userMessage || isWaitingForResponse) return;
+
+            input.value = "";
+            setLoading(true);
+
+            // Add user message to history
+            history.push({ type: "human", content: userMessage });
+
+            // Add temporary loading message
+            history.push({ type: "ai", content: "", isLoading: true });
+            renderMessages();
+
+            try {
+                // Send request to server with conversation history
+                const res = await fetch("/chat/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        message: userMessage,
+                        history: history.filter(msg => !msg.isLoading).slice(0, -1) // Exclude loading message and current message
+                    })
+                });
+
+                const data = await res.json();
+
+                // Remove loading message
+                history.pop();
+
+                // Add AI response to history
+                history.push({ type: "ai", content: data.aiResponse });
+
+            } catch (error) {
+                console.error("Error:", error);
+                history.pop();
+                history.push({ type: "ai", content: "Sorry, there was an error processing your request." });
+            } finally {
+                setLoading(false);
+                renderMessages();
+
+                // Focus on input for next message
+                document.getElementById("messageInput").focus();
+            }
+        }
+
+        // Initialize with focus on input
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById("messageInput").focus();
+        });
+    </script>
+</body>
+
+</html>

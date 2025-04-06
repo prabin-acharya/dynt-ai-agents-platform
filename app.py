@@ -6,6 +6,9 @@ from flask import Flask, request, jsonify
 from crewai import Agent, Task, Crew, Process
 from typing import List, Optional
 from pydantic import BaseModel
+from routes.agents import bp as agents_bp
+from routes.tools import bp as tools_bp
+from routes.chat import bp as chat_bp
 
 # Load environment variables
 load_dotenv()
@@ -26,6 +29,10 @@ class CategoryMappingList(BaseModel):
     mappings: List[CategoryMapping]
 
 app = Flask(__name__)
+
+app.register_blueprint(agents_bp)
+app.register_blueprint(tools_bp)
+app.register_blueprint(chat_bp)
 
 categorizer = Agent(
     role='Senior Transaction Categorizer',
@@ -121,6 +128,13 @@ def run_merchant_inference():
     result = crew.kickoff()
     return result.model_dump_json(), 200
 
+
+@app.route("/", methods=["GET"])
+def hello():
+    return {
+        "message": "Welcome to Dynt — intelligent financial agent platform.",
+        "status": "API is live and operational.",
+    }
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=7777)

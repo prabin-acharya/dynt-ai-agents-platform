@@ -1,78 +1,42 @@
-# DYNT AI Agents
+# DYNT AI Agents Platform
 
-A platform that uses AI agents to provide automated financial insights and recommendations for businesses.
+## Tools:
 
-## Quick Start
+Tools for performing various tasks are defined at `/tools`. Here is a list of currently available tools:
 
-### Prerequisites
+- get_transactions(org_id): Get latest transactions for a given organization.
+- get_transaction(transaction_id): Get a specific transaction details by its ID.
+- get_invoices(org_id): Get latest invoices for a given organization.
+- get_categories(org_id): Get all defined categories for a given organization.
 
-- Python 3.9+
-- OpenAI API key
-- AgentsOPS API key
+Similarly, new tools can be added to update, add data by defining a new function wrapping the supabase call and adding it to the tools list.
 
-### Setup
+## Agents
 
-1. Clone and install dependencies:
-```bash
-git clone https://github.com/your-org/dynt-ai-agents.git
-cd dynt-ai-agents
-pip install -r requirements.txt
-```
+The `/agents` folder contains the code for the agents. The agents are designed to perform specific tasks like categorizing transactions, inferring merchants. (Built with Langchain)
 
-2. Set up environment variables:
-```bash
-cp .env.example .env
+## Chat:
 
-# Add to .env:
-OPENAI_API_KEY=your-key-here
-AGENTSOPS_API_KEY=your-key-here
-```
+`/chat` serves as the foundation for a financial advisor agent or in-app assistant. It uses all available tools to respond to user queries about transactions, invoices, and more. Additional capabilities can be added by defining and registering new tools. Right now, you can only read data with these tools but you can add new tools to update, add data.
 
-3. Run the application:
-```bash
-python app.py
-```
+Right now, you have to pass the organization id or the necessary parameters in the chat itself. But, once it is integrated in the dynt-app, users can simply chat and the app will manage the identification details itself. (Built with Langgraph)
 
-## Available Agents
+````
 
-### Financial Advisor Agent
-- Analyzes transaction data and provides financial recommendations
-- Supports human-in-the-loop review process
+    tools = [
+        get_transaction,
+        get_transactions,
+        get_invoices,
+        get_users_transactions_categories,
+        get_organization_details
+    ]
 
-### Coming Soon
-- Cash Flow Agent
-- Compliance Agent
+    agent = create_react_agent(
+        "openai:gpt-4o-mini",
+        tools=tools,
+        prompt=agent_system_prompt_template
+    )
 
-## Testing
 
-Run tests with:
-```bash
-# Run all tests
-pytest
-
-# Test specific agent
-pytest tests/test_financial_advisor.py
-```
-
-## Development
-
-1. Create a feature branch:
-```bash
-git checkout -b feature/your-feature-name
-```
-
-2. Test your changes:
-```bash
-pytest
-```
-
-3. Create a pull request
-
-## Support
-
-Need help? Create an issue in the repository.
-
-## Version History
-
-- v0.1.0 - Initial release with Financial Advisor Agent
-- v0.2.0 - Added production data testing capabilities 
+    ```
+````
