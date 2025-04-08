@@ -7,7 +7,7 @@ def get_transaction(transaction_id: str):
     """Get transaction details for a given transaction id"""
     try:
         res = supabase.table("Transaction") \
-            .select("amount, description") \
+            .select("id, amount, content, date") \
             .eq("id", transaction_id) \
             .single() \
             .execute()
@@ -21,11 +21,11 @@ def get_transaction(transaction_id: str):
 
 
 @tool
-def get_transactions(org_id:str, user_id:str):
+def get_transactions(org_id:str):
     """Get latest transactions for a given organization id and user id"""
     try:
         res = supabase.table("TransactionHistory") \
-            .select("amount, content") \
+            .select("id, amount, content, date") \
             .eq("organizationId", org_id) \
             .order("dateTime", desc=True) \
             .limit(8) \

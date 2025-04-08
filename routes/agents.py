@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
-from agents.categorize_transactions_agent import CategorizeTransactionsAgent
+from agents.categorize_transactions import CategorizeTransactionsAgent
+from agents.infer_merchant import InferMerchantAgent
 
 bp = Blueprint("agents", __name__, url_prefix="/agents")
 
@@ -8,7 +9,7 @@ def hello_agent():
     return {"message": "Hello from the /agents route!"}, 200
 
 
-@bp.route('/categorize', methods=['GET', 'POST'])
+@bp.route('/categorize-transaction', methods=['GET', 'POST'])
 def categorize():
     print("----------------------------")
     # data = request.get_json()
@@ -16,6 +17,9 @@ def categorize():
         # return jsonify({"success": False, "error": "No data provided"}), 400
     # if 'transactions' not in data or 'categories' not in data:
     #     return jsonify({"success": False, "error": "Invalid data format"}), 400
+
+    # transaction = data['transaction']
+    # categories = data['categories']
     
     transactions = [
         {
@@ -59,7 +63,7 @@ def categorize():
         { "id": "clqtuz80g0009mi2a3tl295pp", "name": "Investments" },
     ]
     
-    transaction = transactions[2]
+    transaction = transactions[0]
 
     agent = CategorizeTransactionsAgent()
 
@@ -71,3 +75,45 @@ def categorize():
         return jsonify({"success": True, "data": response})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+    
+
+@bp.route('/infer-merchant', methods=['GET', 'POST'])
+def infer_merchant():
+    print("----------------------------")
+    # data = request.get_json()
+    # if not data:
+        # return jsonify({"success": False, "error": "No data provided"}), 400
+    # if 'transactions' not in data:
+    #     return jsonify({"success": False, "error": "Invalid data format"}), 400
+
+    # transaction = data['transaction']
+    
+    transactions = [
+        {
+            "id": "cm8nce0a70bpl10nmpx3crvzv",
+            "amount": 191.25,
+            "description": None,
+            "json": {"valueDate": "2024-07-02", "bookingDate": "2024-07-02", "transactionId": "0702155941633684", "valueDateTime": "2024-07-02T16:59:52.220", "transactionAmount": {"amount": "-17.75", "currency": "EUR"}, "internalTransactionId": "130fab7296b530ba9e5c116c8ffd0edf", "balanceAfterTransaction": {"balanceType": "interimBooked", "balanceAmount": {"amount": "738.55", "currency": "EUR"}}, "proprietaryBankTransactionCode": "369", "remittanceInformationUnstructuredArray": ["BEA, Apple Pay", "KAILUA,PAS466", "NR:01143666, 02.07.24/15:59", "COSTA DA CAPA, Land: PRT"]}
+        },
+        {
+            "id": "clzd0vxfv03ot11vmq3d2wsvn",
+            "amount": -4.75,
+            "description": None,
+            "json": {"valueDate": "2024-08-02", "bookingDate": "2024-08-02", "transactionId": "0802184322746023", "valueDateTime": "2024-08-02T18:43:32.200", "transactionAmount": {"amount": "-4.75", "currency": "EUR"}, "internalTransactionId": "aadeb20f61a057ef89e2ba8b180481fc", "balanceAfterTransaction": {"balanceType": "interimBooked", "balanceAmount": {"amount": "404.74", "currency": "EUR"}}, "proprietaryBankTransactionCode": "426", "remittanceInformationUnstructuredArray": ["BEA, Apple Pay", "Zettle_*ijscuypje,PAS466", "NR:70105680, 02.08.24/18:43", "Amsterdam"]}
+        }
+
+    ]
+    
+    transaction = transactions[0]
+
+    agent = InferMerchantAgent()
+
+    try:
+        response = agent.run(
+            transaction
+        )
+        return jsonify({"success": True, "data": response})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+    
+

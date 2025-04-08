@@ -49,6 +49,7 @@ def chat():
     return jsonify({
         "aiResponse": latest_ai_message.content
     }), 200
+
     
 @bp.route("/", methods=["GET"])
 def chat_ui():
