@@ -59,6 +59,7 @@ Right now, you have to pass the organization id or the necessary parameters in t
 │   ├── __init__.py
 │   ├── base_agent.py
 │   ├── categorize_transactions.py # Agent for categorizing transactions
+│   ├── infer_merchants.py         # Agent for inferring merchants
 ├── tools/
 │   ├── __init__.py
 │   ├── invoices.py                # Tool for fetching latest invoices(8)

@@ -5,8 +5,12 @@ from pydantic import BaseModel, Field
 from langchain_core.callbacks import UsageMetadataCallbackHandler
 from prompts.categorize_transaction import system_prompt_template, user_prompt_template
 from agent_logs.supabase_logger_mixin import AgentLoggingMixin
+from config import Config
+import logging
+logger = logging.getLogger(__name__)
 
-llm = init_chat_model("openai:gpt-4o-mini")
+
+llm = init_chat_model(Config.LLM_MODEL_NAME)
 
 # Custom schema
 class Category(BaseModel):
@@ -24,52 +28,69 @@ structured_llm = llm.with_structured_output(TransactionCategory)
 
 class CategorizeTransactionsAgent(BaseAgent, AgentLoggingMixin):
     def __init__(self):
-        super().__init__("categorize_transaction")
+        super().__init__("categorize_transactions")
 
     def run(self, transaction, categories):
         self._start_timer()
         callback = UsageMetadataCallbackHandler()
 
-        system_prompt = system_prompt_template.format(
-            categories=", ".join([f"{c['name']} (id: {c['id']})" for c in categories])
-        )
+        try:
 
-        user_transaction_text = f"""Transaction ID: {transaction['id']}
-        Amount: {transaction['amount']}
-        Description: {transaction['description']}
-        Merchant: {transaction['merchant']['name'] if transaction.get('merchant') else 'None'}
-        """
+            system_prompt = system_prompt_template.format(
+                categories=", ".join([f"{c['name']} (id: {c['id']})" for c in categories])
+            )
 
-        user_prompt = user_prompt_template.format(
-            transaction=user_transaction_text
-        )
+            user_transaction_text = f"""Transaction ID: {transaction['id']}
+            Amount: {transaction['amount']}
+            Description: {transaction['description']}
+            Merchant: {transaction['merchant']['name'] if transaction.get('merchant') else 'None'}
+            """
 
-        # LLM call
-        result = structured_llm.invoke([
-            {
-                "role": "system",
-                "content": system_prompt
-            },
-            {
-                "role": "user",
-                "content": user_prompt
+            user_prompt = user_prompt_template.format(
+                transaction=user_transaction_text
+            )
+
+            # LLM call
+            result = structured_llm.invoke([
+                {
+                    "role": "system",
+                    "content": system_prompt
+                },
+                {
+                    "role": "user",
+                    "content": user_prompt
+                }
+            ], config={"callbacks": [callback]})
+
+            output_data = result.model_dump()
+            output_data["transaction_id"] = transaction.get("id")
+            status = "success"
+
+        except Exception as e:
+            logger.exception("Failed to categorize transaction.")
+            output_data = {
+                "error": str(e),
+                "transaction_id": transaction.get("id"),
             }
-        ], config={"callbacks": [callback]})
+            status = "error"
 
-        self._end_timer()
-        
-        self.log_agent_operation(
-            agent_name=self.name,
-            model_name="gpt-4o-mini",
-            input_data={"transaction": transaction, "categories": categories},
-            output_data=result.model_dump(),
-            usage_metadata=callback.usage_metadata,
-            key_name="transaction_id",
-            key_id=transaction["id"]
-        )
+        finally:
+
+            self._end_timer()
+            
+            self.log_agent_operation(
+                agent_name=self.name,
+                model_name=Config.LLM_MODEL_NAME,
+                input_data={"transaction": transaction, "categories": categories},
+                output_data=output_data,
+                usage_metadata=callback.usage_metadata if status == "success" else None,
+                key_name="transaction_id",
+                key_id=transaction["id"]
+            )
 
         return {
-            "result": result.model_dump(),
-            "usage_metadata": callback.usage_metadata
+            "result": output_data,
+            "usage_metadata": callback.usage_metadata if status == "success" else None,
+            "status": status
         }
-    
+

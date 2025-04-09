@@ -1,6 +1,8 @@
 from flask import Blueprint, request, jsonify
 from agents.categorize_transactions import CategorizeTransactionsAgent
 from agents.infer_merchant import InferMerchantAgent
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 
 bp = Blueprint("agents", __name__, url_prefix="/agents")
 
@@ -9,18 +11,19 @@ def hello_agent():
     return {"message": "Hello from the /agents route!"}, 200
 
 
-@bp.route('/categorize-transaction', methods=['GET', 'POST'])
+@bp.route('/categorize-transactions', methods=['POST', "GET"])
 def categorize():
-    print("----------------------------")
     # data = request.get_json()
+
     # if not data:
-        # return jsonify({"success": False, "error": "No data provided"}), 400
+    #     return jsonify({"success": False, "error": "No data provided"}), 400
     # if 'transactions' not in data or 'categories' not in data:
     #     return jsonify({"success": False, "error": "Invalid data format"}), 400
 
-    # transaction = data['transaction']
+    # transactions = data['transactions']
     # categories = data['categories']
-    
+
+        
     transactions = [
         {
             "id": "cm8nce0a70bpl10nmpx3crvzv",
@@ -63,30 +66,42 @@ def categorize():
         { "id": "clqtuz80g0009mi2a3tl295pp", "name": "Investments" },
     ]
     
-    transaction = transactions[0]
-
     agent = CategorizeTransactionsAgent()
+    results = []
 
-    try:
-        response = agent.run(
-            transaction,
-            categories
-        )
-        return jsonify({"success": True, "data": response})
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+    with ThreadPoolExecutor() as executor:
+        future_to_tx = {
+            executor.submit(agent.run, tx, categories): tx for tx in transactions
+        }
+
+        for future in as_completed(future_to_tx):
+            tx = future_to_tx[future]
+            try:
+                result = future.result()
+                result["transaction_id"] = tx["id"]  # Add original ID
+                results.append(result)
+            except Exception as e:
+                results.append({
+                    "transaction_id": tx["id"],
+                    "status": "error",
+                    "error": str(e)
+                })
+
+    return jsonify({
+        "success": True,
+        "results": results
+    })
+
     
 
-@bp.route('/infer-merchant', methods=['GET', 'POST'])
+@bp.route('/infer-merchants', methods=['GET', 'POST'])
 def infer_merchant():
     print("----------------------------")
     # data = request.get_json()
-    # if not data:
-        # return jsonify({"success": False, "error": "No data provided"}), 400
-    # if 'transactions' not in data:
-    #     return jsonify({"success": False, "error": "Invalid data format"}), 400
+    # if not data or 'transactions' not in data:
+    #     return jsonify({"success": False, "error": "Invalid input. Expected 'transactions'."}), 400
 
-    # transaction = data['transaction']
+    # transactions = data['transactions']
     
     transactions = [
         {
@@ -104,16 +119,29 @@ def infer_merchant():
 
     ]
     
-    transaction = transactions[0]
-
     agent = InferMerchantAgent()
+    results = []
 
-    try:
-        response = agent.run(
-            transaction
-        )
-        return jsonify({"success": True, "data": response})
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
-    
+    with ThreadPoolExecutor() as executor:
+        future_to_tx = {
+            executor.submit(agent.run, tx): tx for tx in transactions
+        }
 
+        for future in as_completed(future_to_tx):
+            tx = future_to_tx[future]
+            try:
+                result = future.result()
+                result["transaction_id"] = tx.get("id")
+                result["status"] = "success"
+                results.append(result)
+            except Exception as e:
+                results.append({
+                    "transaction_id": tx.get("id"),
+                    "status": "error",
+                    "error": str(e)
+                })
+
+    return jsonify({
+        "success": True,
+        "results": results
+    })

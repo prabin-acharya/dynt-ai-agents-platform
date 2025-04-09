@@ -8,3 +8,5 @@ class Config:
     OPENAI_API_KEY = os.getenv("OPENAI_KEY")
     OPENAI_KEY = os.getenv("OPENAI_KEY")
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+    LLM_MODEL_NAME = os.getenv("LLM_MODEL_NAME")
+
