@@ -77,7 +77,7 @@ Right now, you have to pass the organization id or the necessary parameters in t
 │   ├── chat_agent.py
 ├── templates/
 │   ├── chat.html
-├── agetn_logs/
+├── agent_logs/
 │   ├── __init__.py
 │   ├── logger.py
 │   └── supabase_client.py         # Supabase client helper
